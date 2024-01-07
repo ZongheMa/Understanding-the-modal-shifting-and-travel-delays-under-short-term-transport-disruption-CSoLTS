@@ -22,7 +22,7 @@ def merge_csv(directory):
     # Loop through csv files, read each into a dataframe, and append to the list
     for file in csv_files:
         # Extract date from filename, assuming the date is in format 'traffic_flow_YYYY_MM_DD'
-        date_str = file.split('.')[0].split('_')[-1].split('_')[-3:]  # This gives ['YYYY', 'MM', 'DD']
+        date_str = file.split('.')[0].split('_')[-1].split('-')[-3:]  # This gives ['YYYY', 'MM', 'DD']
         date = datetime.strptime('-'.join(date_str), '%Y-%m-%d').date()
 
         df = pd.read_csv(os.path.join(directory, file))
