@@ -3,7 +3,8 @@ import pandas as pd
 from datetime import datetime
 import gzip
 import shutil
-def decompression(directory):
+import matplotlib.pyplot as plt
+def decompression(directory,delete_gz = False):
     # Get a list of all the gzip files
     gzip_files = [f for f in os.listdir(directory) if f.endswith('.gz')]
 
@@ -12,6 +13,10 @@ def decompression(directory):
         with gzip.open(os.path.join(directory, file), 'rb') as f_in:
             with open(os.path.join(directory, file[:-3]), 'wb') as f_out:
                 shutil.copyfileobj(f_in, f_out)
+        if delete_gz:
+            os.remove(os.path.join(directory, file))
+
+    return
 def merge_csv(directory):
     # Get a list of all the csv files
     csv_files = [f for f in os.listdir(directory) if f.endswith('.csv')]
@@ -63,3 +68,28 @@ def merge_csv_flow(directory):
 
     # Return the merged dataframe
     return merged_df
+
+def normalize_plot(gdf, column, date, cmap='viridis', legend=True):
+    # Filter the GeoDataFrame for the specified date
+    geo_df = gdf[gdf['date'] == date].copy()
+
+    # Ensure the column is numeric
+    geo_df[column] = pd.to_numeric(geo_df[column],
+                                   errors='coerce')  # Convert to numeric, set errors to 'coerce' to handle non-numeric values by converting them to NaN
+
+    # Drop rows where column is NaN after conversion (if any)
+    geo_df.dropna(subset=[column], inplace=True)
+
+    # Normalize the column
+    min_val = geo_df[column].min()
+    max_val = geo_df[column].max()
+    normalized_col_name = f"{column}_normalized"
+    geo_df[normalized_col_name] = (geo_df[column] - min_val) / (max_val - min_val)
+
+    # Plotting
+    geo_df.plot(figsize=(10, 10), column=normalized_col_name, cmap=cmap, legend=legend)
+
+    # Additional plotting setup
+    plt.title(f"{column} on {date}")
+    plt.axis('off')
+    plt.show()
